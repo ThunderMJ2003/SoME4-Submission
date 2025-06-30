@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Birthday Paradox Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body style="font-family:sans-serif; margin:40px">
+    <h2>Birthday Paradox: Probability of Shared Birthday</h2>
+    <p>This graph shows the probability that at least two people in a group share the same birthday. The crossover at 23 people highlights the paradox.</p>
+    <div id="plot" style="width: 100%; max-width: 800px; height: 500px;"></div>
+
+    <script>
+        function birthdayProbability(n) {
+            let prob = 1.0;
+            for (let i = 0; i < n; i++) {
+                prob *= (365 - i) / 365;
+            }
+            return 1 - prob;
+        }
+
+        let people = [];
+        let probabilities = [];
+
+        for (let n = 1; n <= 60; n++) {
+            people.push(n);
+            probabilities.push(birthdayProbability(n));
+        }
+
+        const trace = {
+            x: people,
+            y: probabilities,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'P(at least one shared birthday)',
+            line: { color: '#1f77b4', width: 3 }
+        };
+
+        const layout = {
+            xaxis: { title: 'Number of People' },
+            yaxis: { title: 'Probability', range: [0, 1] },
+            shapes: [
+                {
+                    type: 'line',
+                    x0: 23, x1: 23,
+                    y0: 0, y1: 1,
+                    line: {
+                        color: 'red',
+                        width: 2,
+                        dash: 'dashdot'
+                    }
+                }
+            ],
+            annotations: [
+                {
+                    x: 23,
+                    y: 0.507,
+                    xref: 'x',
+                    yref: 'y',
+                    text: '50% threshold at n = 23',
+                    showarrow: true,
+                    arrowhead: 5,
+                    ax: -40,
+                    ay: -40
+                }
+            ],
+            title: 'Probability of Shared Birthday vs Group Size'
+        };
+
+        Plotly.newPlot('plot', [trace], layout);
+    </script>
+</body>
+</html>

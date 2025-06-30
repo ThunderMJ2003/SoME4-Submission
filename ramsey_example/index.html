@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ramsey Theory - Party of 6</title>
+  <style>
+    canvas { background: #fdfdfd; display: block; margin: auto; border: 1px solid #aaa; }
+  </style>
+</head>
+<body>
+  <h2 style="text-align: center;">Party of 6: Click edges to toggle (Blue = Know, Red = Stranger)</h2>
+  <canvas id="canvas" width="600" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const RADIUS = 15;
+    const NODE_COUNT = 6;
+    const CENTER = 300;
+    const CIRCLE_RADIUS = 200;
+
+    const colors = {0: 'gray', 1: 'blue', 2: 'red'}; // 0: default, 1: friend, 2: stranger
+    const nodes = [];
+    const edges = {};
+
+    for (let i = 0; i < NODE_COUNT; i++) {
+      const angle = (2 * Math.PI * i) / NODE_COUNT;
+      nodes.push({
+        x: CENTER + CIRCLE_RADIUS * Math.cos(angle),
+        y: CENTER + CIRCLE_RADIUS * Math.sin(angle)
+      });
+    }
+
+    function edgeKey(i, j) {
+      return [Math.min(i, j), Math.max(i, j)].join(',');
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw edges
+      for (let i = 0; i < NODE_COUNT; i++) {
+        for (let j = i + 1; j < NODE_COUNT; j++) {
+          const key = edgeKey(i, j);
+          const color = colors[edges[key] || 0];
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+
+      // Draw nodes
+      for (let i = 0; i < NODE_COUNT; i++) {
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(nodes[i].x, nodes[i].y, RADIUS, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.font = "16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(i + 1, nodes[i].x, nodes[i].y);
+      }
+    }
+
+    function distanceToEdge(x, y, a, b) {
+      const A = nodes[a], B = nodes[b];
+      const dx = B.x - A.x, dy = B.y - A.y;
+      const t = ((x - A.x) * dx + (y - A.y) * dy) / (dx * dx + dy * dy);
+      const closestX = A.x + t * dx, closestY = A.y + t * dy;
+      return Math.hypot(x - closestX, y - closestY);
+    }
+
+    canvas.addEventListener('click', function(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      for (let i = 0; i < NODE_COUNT; i++) {
+        for (let j = i + 1; j < NODE_COUNT; j++) {
+          if (distanceToEdge(x, y, i, j) < 10) {
+            const key = edgeKey(i, j);
+            edges[key] = (edges[key] || 0) + 1;
+            if (edges[key] > 2) edges[key] = 1; // toggle between 1 (blue) and 2 (red)
+            draw();
+            return;
+          }
+        }
+      }
+    });
+
+    draw();
+  </script>
+</body>
+</html>

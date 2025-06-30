@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pigeonhole Geometry – 5 Points in a 2x2 Square</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+    }
+    canvas {
+      border: 2px solid black;
+      margin-top: 20px;
+    }
+    #info {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Click to place up to 5 points inside a 2×2 square</h2>
+  <p>(Two points will be highlighted if they're within √2 distance)</p>
+  <canvas id="canvas" width="400" height="400"></canvas>
+  <div id="info"></div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const size = 400;
+    const points = [];
+    const maxPoints = 5;
+    const threshold = Math.SQRT2;
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, size, size);
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, size, size);
+
+      // draw 4 sub-squares
+      ctx.beginPath();
+      ctx.moveTo(size / 2, 0);
+      ctx.lineTo(size / 2, size);
+      ctx.moveTo(0, size / 2);
+      ctx.lineTo(size, size / 2);
+      ctx.stroke();
+    }
+
+    function drawPoints(highlightPair = []) {
+      for (let i = 0; i < points.length; i++) {
+        const [x, y] = points[i];
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = highlightPair.includes(i) ? "red" : "blue";
+        ctx.fill();
+      }
+    }
+
+    function distance(a, b) {
+      const dx = a[0] - b[0];
+      const dy = a[1] - b[1];
+      return (2 * Math.sqrt(dx * dx + dy * dy)) / size; // scale to 2x2 square
+    }
+
+    function checkPairs() {
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          if (distance(points[i], points[j]) <= threshold) {
+            return [i, j];
+          }
+        }
+      }
+      return null;
+    }
+
+    canvas.addEventListener("click", (e) => {
+      if (points.length >= maxPoints) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      points.push([x, y]);
+      drawGrid();
+      const pair = checkPairs();
+      drawPoints(pair || []);
+
+      const info = document.getElementById("info");
+      if (pair) {
+        info.textContent = `🎯 Two points are within √2 distance!`;
+      } else if (points.length === maxPoints) {
+        info.textContent = `✅ All 5 points placed. No pair found within √2 distance (visually, they might be close).`;
+      } else {
+        info.textContent = `Points placed: ${points.length}`;
+      }
+    });
+
+    drawGrid();
+  </script>
+</body>
+</html>
